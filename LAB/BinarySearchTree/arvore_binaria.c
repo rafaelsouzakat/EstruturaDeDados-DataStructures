@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #define MAX 50
 
 // Estrutura do nó da árvore
@@ -26,6 +27,11 @@ No* criaNo(int codigo_produto, char nome[MAX], int stock_amount) {
         exit(1);
     }
     novo->codigo_produto = codigo_produto;
+    novo->stock_amount = stock_amount;
+    strncpy(novo->nome, nome, MAX);
+    novo->nome[MAX - 1] = '\0'; // Garante que a string esteja terminada em '\0'
+
+
     novo->esq = NULL;
     novo->dir = NULL;
     return novo;
@@ -86,6 +92,34 @@ No* buscaBST(BST* bst, int codigo_produto) {
     return buscaRec(bst->raiz, codigo_produto);
 }
 
+// Retorna o nó com o menor código na árvore
+No* menorNoRec(No* raiz) {
+    if (raiz == NULL) return NULL;
+    while (raiz->esq != NULL) {
+        raiz = raiz->esq;
+    }
+    return raiz;
+}
+
+// Retorna o nó com o maior código na árvore
+No* maiorNoRec(No* raiz) {
+    if (raiz == NULL) return NULL;
+    while (raiz->dir != NULL) {
+        raiz = raiz->dir;
+    }
+    return raiz;
+}
+
+No* menorBST(BST* bst) {
+    if (bst == NULL) return NULL;
+    return menorNoRec(bst->raiz);
+}
+
+No* maiorBST(BST* bst) {
+    if (bst == NULL) return NULL;
+    return maiorNoRec(bst->raiz);
+}
+
 // Percurso em-ordem recursivo
 void emOrdemRec(No* raiz) {
     if (raiz != NULL) {
@@ -125,7 +159,7 @@ int main() {
 
     do{
 
-        printf("Menu:\n");
+        printf("\nMenu:\n");
         printf("1 - Cadastrar produto\n");
         printf("2 - Buscar produto por código\n");
         printf("3 - Listar produtos em ordem\n");
@@ -133,7 +167,7 @@ int main() {
         printf("5 - Mostrar maior código de produto\n");
         printf("6 - Sair\n");
 
-        opcao = scanf("%d", &opcao);
+        scanf("%d", &opcao);
 
         int codigo_produto;
         char nome[MAX];
@@ -141,8 +175,13 @@ int main() {
 
         switch(opcao){
             case 1:
-                printf("Digite o código do produto: ");
+                printf("\nDigite o código do produto: ");
                 scanf("%d", &codigo_produto);
+
+                if(buscaBST(arv, codigo_produto)){
+                    printf("Esse código já foi cadastrado. Tente novamente.\n");
+                    break;
+                }
 
                 printf("Digite o nome do produto: ");
                 scanf("%s", nome);
@@ -154,17 +193,13 @@ int main() {
                     printf("Quantidade em estoque deve ser positiva.\n");
                     break;
                 }
-                if(buscaBST(arv, codigo_produto)){
-                    printf("Esse código já foi cadastrado. Tente novamente.\n");
-                    break;
-                }
 
                 insereBST(arv, codigo_produto, nome, stock_amount);
                 printf("Produto cadastrado com sucesso!\n");
                 break;
             
             case 2:
-                printf("Digite o código do produto para buscar: ");
+                printf("\nDigite o código do produto para buscar: ");
                 scanf("%d", &codigo_produto);
 
                 No* encontrado = buscaBST(arv, codigo_produto);
@@ -176,46 +211,34 @@ int main() {
                 break;
 
             case 3:
-                printf("Produtos em ordem: ");
+                printf("\nProdutos em ordem crescente de código: ");
                 emOrdemBST(arv);
                 printf("\n");
                 break;
             
-            case 4:
-                // Implementar função para mostrar menor código de produto
+            case 4: {
+                No* menor = menorBST(arv);
+                if (menor) {
+                    printf("\nMenor código de produto: %d\n", menor->codigo_produto);
+                } else {
+                    printf("\nA árvore está vazia.\n");
+                }
                 break;
+            }
 
-            case 5:
-                // Implementar função para mostrar maior código de produto
+            case 5: {
+                No* maior = maiorBST(arv);
+                if (maior) {
+                    printf("\nMaior código de produto: %d\n", maior->codigo_produto);
+                } else {
+                    printf("\nA árvore está vazia.\n");
+                }
                 break;
+            }
         }
 
     } 
     while(opcao != 6);
-
-    // Insere alguns valores
-    // Cada produto tem um código único, um nome e uma quantidade em estoque (positiva)
-    //insereBST(arv, 001, "Produto 1", 10);
-    //insereBST(arv, 002, "Produto 2", 20);
-    //insereBST(arv, 003, "Produto 3", 15);
-    //insereBST(arv, 004, "Produto 4", 5);
-    //insereBST(arv, 005, "Produto 5", 8);
-    //insereBST(arv, 006, "Produto 6", 12);
-    //insereBST(arv, 007, "Produto 7", 25);
-
-    // Percorre em-ordem
-    printf("Valores em-ordem: ");
-    emOrdemBST(arv);
-    printf("\n");
-
-    // Faz uma busca
-    //int codigoParaBuscar = 40;
-    //No* encontrado = buscaBST(arv, codigoParaBuscar);
-    //if (encontrado) {
-    //    printf("Código %d encontrado na árvore.\n", codigoParaBuscar);
-    //} else {
-    //    printf("Código %d não encontrado.\n", codigoParaBuscar);
-    //}
 
     // Libera toda a memória
     liberaBST(arv);
